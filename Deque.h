@@ -2,11 +2,17 @@
 #define DEQUE_H
 #include <iostream>
 #include <vector>
+#include "Base_Iterator.h"
+
+
+template <typename T, bool IsConst, bool IsReverse>
+class BaseIterator;
 
 template <typename T>
 class Deque {
     private:
-        const static size_t CHUNK_SIZE = 128;
+        friend class BaseIterator<T, false, false>;
+        static constexpr size_t CHUNK_SIZE = 128;
         std::vector<T*> chunk_map;
 
     public:
