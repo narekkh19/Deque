@@ -19,7 +19,8 @@ BaseIterator<T, IsConst, IsReverse>::BaseIterator(const BaseIterator& other) noe
 template <typename T, bool IsConst, bool IsReverse>
 BaseIterator<T, IsConst, IsReverse>::BaseIterator(BaseIterator&& other) noexcept 
     : curr{other.curr}, first{other.first}, last{other.last}, node{other.node} {
-    other.curr = other.first = other.last = other.node = nullptr;
+    other.curr = other.first = other.last = nullptr;
+    other.node = nullptr;
 }
 
 template <typename T, bool IsConst, bool IsReverse>
@@ -42,52 +43,69 @@ BaseIterator<T, IsConst, IsReverse>::operator=(BaseIterator&& other) noexcept {
         first = other.first;
         last = other.last;
         node = other.node;
-        other.curr = other.first = other.last = other.node = nullptr;
+        other.curr = other.first = other.last = nullptr;
+        other.node = nullptr;
     }
     return *this;
 }
-
 template <typename T, bool IsConst, bool IsReverse>
 void BaseIterator<T, IsConst, IsReverse>::increment() {
-    if constexpr (IsReverse) {
-        --curr;
-        if (curr < first) {
-            --node;
-            first = *node;
-            last = first + Deque<T>::CHUNK_SIZE - 1;
-            curr = last;
-        }
-    } else {
+    if constexpr (!IsReverse) {
         ++curr;
         if (curr > last) {
             ++node;
-            first = *node;
-            last = first + Deque<T>::CHUNK_SIZE - 1;
-            curr = first;
+            if (node == nullptr || *node == nullptr) {
+                curr = nullptr;
+            } else {
+                first = *node;
+                last = first + CHUNK_SIZE - 1;
+                curr = first;
+            }
+        }
+    } else {
+        --curr;
+        if (curr < first) {
+            --node;
+            if (node == nullptr || *node == nullptr) {
+                curr = nullptr;
+            } else {
+                first = *node;
+                last = first + CHUNK_SIZE - 1;
+                curr = last;
+            }
         }
     }
 }
 
 template <typename T, bool IsConst, bool IsReverse>
 void BaseIterator<T, IsConst, IsReverse>::decrement() {
-    if constexpr (IsReverse) {
-        ++curr;
-        if (curr > last) {
-            ++node;
-            first = *node;
-            last = first + Deque<T>::CHUNK_SIZE - 1;
-            curr = first;
-        }
-    } else {
+    if constexpr (!IsReverse) {
         --curr;
         if (curr < first) {
             --node;
-            first = *node;
-            last = first + Deque<T>::CHUNK_SIZE - 1;
-            curr = last;
+            if (node == nullptr || *node == nullptr) {
+                curr = nullptr;
+            } else {
+                first = *node;
+                last = first + CHUNK_SIZE - 1;
+                curr = last;
+            }
+        }
+    } else {
+        ++curr;
+        if (curr > last) {
+            ++node;
+            if (node == nullptr || *node == nullptr) {
+                curr = nullptr;
+            } else {
+                first = *node;
+                last = first + CHUNK_SIZE - 1;
+                curr = first;
+            }
         }
     }
 }
+
 
 template <typename T, bool IsConst, bool IsReverse>
 BaseIterator<T, IsConst, IsReverse> 
@@ -126,7 +144,7 @@ BaseIterator<T, IsConst, IsReverse>::operator-(const BaseIterator& other) const 
     difference_type diff = 
         (start.last - start.curr + 1) +
         (end.curr - end.first) +
-        ((end.node - start.node - 1) * Deque<T>::CHUNK_SIZE);
+        ((end.node - start.node - 1) * CHUNK_SIZE);
     
     return (node < other.node) ? 
         (IsReverse ? -diff : diff) : 
@@ -174,7 +192,7 @@ BaseIterator<T, IsConst, IsReverse>::operator+=(difference_type n) {
 
             node -= blocks_to_jump;
             first = *node;
-            last = first + Deque<T>::CHUNK_SIZE - 1;
+            last = first + CHUNK_SIZE - 1;
             curr = last - offset_in_block;
         } else {
             return operator-= (-n);
@@ -187,7 +205,7 @@ BaseIterator<T, IsConst, IsReverse>::operator+=(difference_type n) {
 
             node += blocks_to_jump;
             first = *node;
-            last = first + Deque<T>::CHUNK_SIZE - 1;
+            last = first + CHUNK_SIZE - 1;
             curr = first + offset_in_block;
         } else {
             return operator-= (-n);
@@ -209,7 +227,7 @@ BaseIterator<T, IsConst, IsReverse>::operator-=(difference_type n) {
 
             node -= blocks_to_jump;
             first = *node;
-            last = first + Deque<T>::CHUNK_SIZE - 1;
+            last = first + CHUNK_SIZE - 1;
             curr = last - offset_in_block;
         } else {
             return operator+=(-n);

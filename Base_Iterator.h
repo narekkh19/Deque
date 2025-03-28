@@ -4,10 +4,13 @@
 #include <iterator>
 #include <cstddef>
 #include "Deque.h"
+template <typename T>
+class Deque;
 
 template <typename T, bool IsConst = false, bool IsReverse = false>
 class BaseIterator {
-public:
+    public:
+        
     using iterator_category = std::random_access_iterator_tag;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
@@ -15,8 +18,10 @@ public:
     using const_reference = const T&;
     using pointer = std::conditional_t<IsConst, const T*, T*>;
     using Chunkpointer = std::conditional_t<IsConst, const T**, T**>;
-
-private:    
+    
+    private:    
+    friend Deque<T>;
+    static constexpr size_t CHUNK_SIZE = 128;
     pointer curr;
     pointer first;
     pointer last;
